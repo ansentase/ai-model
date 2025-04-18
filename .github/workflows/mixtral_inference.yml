@@ -3,7 +3,7 @@ name: Run Mixtral Inference
 on:
   push:
     branches:
-      - main  # Trigger on push to the main branch
+      - main
 
 jobs:
   query_mixtral:
@@ -18,13 +18,4 @@ jobs:
           curl -X POST "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1" \
           -H "Authorization: Bearer ${{ secrets.HF_API_TOKEN }}" \
           -H "Content-Type: application/json" \
-          -d '{
-                "inputs": "can you write 350 words email on youtube content creation and don't give me tips write by yourself using your creativity",
-                "parameters": {
-                  "max_new_tokens": 5000,
-                  "do_sample": true,
-                  "temperature": 0.7,
-                  "top_k": 50,
-                  "top_p": 0.95
-                }
-              }'
+          -d "{\"inputs\": \"can you write 350 words email on productivity and don't give me tips write by yourself using your creativity\", \"parameters\": {\"max_new_tokens\": 5000, \"do_sample\": true, \"temperature\": 0.7, \"top_k\": 50, \"top_p\": 0.95}}"
