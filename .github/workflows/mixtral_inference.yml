@@ -23,34 +23,36 @@ jobs:
         env:
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
         run: |
-          import os
-          from openai import OpenAI
+          echo 'import os
+from openai import OpenAI
 
-          prompt = "give me 1000 words script on productivity"
-          hf_token = os.getenv("HF_API_TOKEN")
+prompt = "give me 1000 words script on productivity"
+hf_token = os.getenv("HF_API_TOKEN")
 
-          client = OpenAI(
-              base_url="https://api-inference.huggingface.co/v1/",
-              api_key=hf_token,
-          )
+client = OpenAI(
+    base_url="https://api-inference.huggingface.co/v1/",
+    api_key=hf_token,
+)
 
-          messages = [
-              {"role": "system", "content": "You are a helpful assistant."},
-              {"role": "user", "content": prompt},
-          ]
+messages = [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": prompt},
+]
 
-          response = ""
-          for chunk in client.chat.completions.create(
-              model="meta-llama/Llama-3.3-70B-Instruct",
-              max_tokens=4096,
-              stream=True,
-              temperature=0.7,
-              top_p=0.95,
-              frequency_penalty=0.0,
-              seed=None,
-              messages=messages,
-          ):
-              token = chunk.choices[0].delta.content
-              if token:
-                  print(token, end="", flush=True)
-                  response += token
+response = ""
+for chunk in client.chat.completions.create(
+    model="meta-llama/Meta-Llama-3-70B-Instruct",
+    max_tokens=4096,
+    stream=True,
+    temperature=0.7,
+    top_p=0.95,
+    frequency_penalty=0.0,
+    seed=None,
+    messages=messages,
+):
+    token = chunk.choices[0].delta.content
+    if token:
+        print(token, end="", flush=True)
+        response += token
+' > script.py
+          python script.py
