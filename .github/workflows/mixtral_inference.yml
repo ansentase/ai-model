@@ -2,66 +2,55 @@ name: HuggingFace Inference Workflow
 
 on:
   workflow_dispatch:
-    inputs:
-      prompt:
-        description: "Enter a text prompt"
-        required: true
-        default: "Explain the evolution of human intelligence in deep detail."
 
 jobs:
-  run-inference:
+  generate-text:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout Repo
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install dependencies
         run: pip install openai
 
-      - name: Create and run inference script
+      - name: Run Hugging Face inference
         env:
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
-          PROMPT_INPUT: ${{ github.event.inputs.prompt }}
         run: |
-          cat <<EOF > script.py
           import os
           from openai import OpenAI
 
-          HF_TOKEN = os.getenv("HF_API_TOKEN")
-          if not HF_TOKEN:
-              raise ValueError("HF_API_TOKEN not set.")
-
-          prompt = os.getenv("PROMPT_INPUT", "Give me 1000 words script on productivity")
+          prompt = "give me 1000 words script on productivity"
+          hf_token = os.getenv("HF_API_TOKEN")
 
           client = OpenAI(
               base_url="https://api-inference.huggingface.co/v1/",
-              api_key=HF_TOKEN,
+              api_key=hf_token,
           )
 
-          system_message = "You are a detailed and insightful assistant."
+          messages = [
+              {"role": "system", "content": "You are a helpful assistant."},
+              {"role": "user", "content": prompt},
+          ]
 
-          response = client.chat.completions.create(
+          response = ""
+          for chunk in client.chat.completions.create(
               model="meta-llama/Llama-3.3-70B-Instruct",
-              max_tokens=2048,
+              max_tokens=4096,
+              stream=True,
               temperature=0.7,
               top_p=0.95,
               frequency_penalty=0.0,
-              messages=[
-                  {"role": "system", "content": system_message},
-                  {"role": "user", "content": prompt}
-              ],
-              stream=False
-          )
-
-          output = response.choices[0].message.content.strip()
-          print("=== MODEL RESPONSE ===")
-          print(output)
-          EOF
-
-          python script.py
+              seed=None,
+              messages=messages,
+          ):
+              token = chunk.choices[0].delta.content
+              if token:
+                  print(token, end="", flush=True)
+                  response += token
