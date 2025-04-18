@@ -1,61 +1,50 @@
-name: HuggingFace Inference Workflow
+name: Run Mixtral Inference with Python
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  generate-text:
+  query_mixtral:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install requests
-
-      - name: Run Hugging Face Inference
+      - name: Run Python script to call Mixtral API
         env:
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
         run: |
-          echo 'import os
-import requests
-
-# Set up Hugging Face API details
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct"
-headers = {
-    "Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}",
-}
-
-# Your prompt
-prompt = "give me 1000 words script on productivity"
-
-# Prepare the request payload
-data = {
-    "inputs": prompt,
-    "parameters": {
-        "max_length": 1000,  # Limit the output to 1000 words
-        "temperature": 0.7,
-        "top_p": 0.95,
-        "frequency_penalty": 0.0,
-    },
-}
-
-# Make the request to Hugging Face model
-response = requests.post(API_URL, headers=headers, json=data)
-
-# Handle response
-if response.status_code == 200:
-    output = response.json()[0]["generated_text"]
-    print(f"Generated text: {output}")
-else:
-    print(f"Error: {response.status_code} - {response.text}")
-' > script.py
-
-          python script.py
+          python3 - <<EOF
+          import requests
+          import json
+          import os
+          prompt = "can you write 350 words email on productivity and don't give me tips write by yourself using your creativity"
+          url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+          headers = {
+              "Authorization": f"Bearer {os.environ['HF_API_TOKEN']}",
+              "Content-Type": "application/json"
+          }
+          payload = {
+              "inputs": prompt,
+              "parameters": {
+                  "max_new_tokens": 9000,
+                  "do_sample": True,
+                  "temperature": 0.7,
+                  "top_k": 50,
+                  "top_p": 0.95
+              }
+          }
+          response = requests.post(url, headers=headers, data=json.dumps(payload))
+          raw_text = response.json()[0]['generated_text']
+          # Step 1: Remove prompt from the generated text
+          if raw_text.startswith(prompt):
+              raw_text = raw_text[len(prompt):]
+          # Step 2: Replace \n and \r\n with actual line breaks
+          cleaned_text = raw_text.replace("\\n", "\n").replace("\n\n", "\n").strip()
+          # Step 3: Output as plain text
+          print("----- Final Cleaned Output -----")
+          print(cleaned_text)
+          EOF
