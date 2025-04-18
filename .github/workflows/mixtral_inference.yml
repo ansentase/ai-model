@@ -3,23 +3,23 @@ name: Run Mixtral Inference
 on:
   push:
     branches:
-      - main  # or your desired branch
+      - main  # Trigger on push to the main branch
 
 jobs:
   query_mixtral:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run HuggingFace Inference API Request
+      - name: Query Hugging Face Mixtral Model
         run: |
-          curl -X POST https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1 \
+          curl -X POST "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1" \
           -H "Authorization: Bearer ${{ secrets.HF_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-                "inputs": "can you write 350 words email on productivity and don't give me tips write by yourself using your creativity",
+                "inputs": "can you write 350 words email on productivity and don'\''t give me tips write by yourself using your creativity",
                 "parameters": {
                   "max_new_tokens": 5000,
                   "do_sample": true,
