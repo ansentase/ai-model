@@ -22,7 +22,7 @@ jobs:
           import json
           import os
           prompt = "can you write 350 words email on productivity and don't give me tips write by yourself using your creativity"
-          url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+          url = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-1B-Instruct"
           headers = {
               "Authorization": f"Bearer {os.environ['HF_API_TOKEN']}",
               "Content-Type": "application/json"
