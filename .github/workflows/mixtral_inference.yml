@@ -22,6 +22,7 @@ jobs:
           import json
           import os
 
+          prompt = "can you write 350 words email on productivity and don't give me tips write by yourself using your creativity"
           url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
           headers = {
               "Authorization": f"Bearer {os.environ['HF_API_TOKEN']}",
@@ -29,7 +30,7 @@ jobs:
           }
 
           payload = {
-              "inputs": "can you write 350 words email on productivity and don't give me tips write by yourself using your creativity",
+              "inputs": prompt,
               "parameters": {
                   "max_new_tokens": 5000,
                   "do_sample": True,
@@ -40,6 +41,16 @@ jobs:
           }
 
           response = requests.post(url, headers=headers, data=json.dumps(payload))
-          print("Mixtral Output:")
-          print(response.text)
+          raw_text = response.json()[0]['generated_text']
+
+          # Step 1: Remove prompt from the generated text
+          if raw_text.startswith(prompt):
+              raw_text = raw_text[len(prompt):]
+
+          # Step 2: Replace \n and \r\n with actual line breaks
+          cleaned_text = raw_text.replace("\\n", "\n").replace("\n\n", "\n").strip()
+
+          # Step 3: Output as plain text
+          print("----- Final Cleaned Output -----")
+          print(cleaned_text)
           EOF
