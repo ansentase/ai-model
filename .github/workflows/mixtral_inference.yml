@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -17,42 +17,45 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install openai
+        run: |
+          pip install requests
 
-      - name: Run Hugging Face inference
+      - name: Run Hugging Face Inference
         env:
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
         run: |
           echo 'import os
-from openai import OpenAI
+import requests
 
+# Set up Hugging Face API details
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct"
+headers = {
+    "Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}",
+}
+
+# Your prompt
 prompt = "give me 1000 words script on productivity"
-hf_token = os.getenv("HF_API_TOKEN")
 
-client = OpenAI(
-    base_url="https://api-inference.huggingface.co/v1/",
-    api_key=hf_token,
-)
+# Prepare the request payload
+data = {
+    "inputs": prompt,
+    "parameters": {
+        "max_length": 1000,  # Limit the output to 1000 words
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "frequency_penalty": 0.0,
+    },
+}
 
-messages = [
-    {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": prompt},
-]
+# Make the request to Hugging Face model
+response = requests.post(API_URL, headers=headers, json=data)
 
-response = ""
-for chunk in client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3-70B-Instruct",
-    max_tokens=4096,
-    stream=True,
-    temperature=0.7,
-    top_p=0.95,
-    frequency_penalty=0.0,
-    seed=None,
-    messages=messages,
-):
-    token = chunk.choices[0].delta.content
-    if token:
-        print(token, end="", flush=True)
-        response += token
+# Handle response
+if response.status_code == 200:
+    output = response.json()[0]["generated_text"]
+    print(f"Generated text: {output}")
+else:
+    print(f"Error: {response.status_code} - {response.text}")
 ' > script.py
+
           python script.py
