@@ -1,0 +1,38 @@
+name: Run Mixtral Inference and Save Output
+
+on:
+  push:
+    branches:
+      - main  # change if you're using a different branch
+
+jobs:
+  query_mixtral:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run HuggingFace Inference API Request and Save Output
+        run: |
+          curl -X POST https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1 \
+          -H "Authorization: Bearer ${{ secrets.HF_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "inputs": "can you write 350 words email on productivity and don'\''t give me tips write by yourself using your creativity",
+                "parameters": {
+                  "max_new_tokens": 5000,
+                  "do_sample": true,
+                  "temperature": 0.7,
+                  "top_k": 50,
+                  "top_p": 0.95
+                }
+              }' > mixtral_output.txt
+
+      - name: Commit and Push Output File
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add mixtral_output.txt
+          git commit -m "Add Mixtral API response"
+          git push
