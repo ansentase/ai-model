@@ -19,7 +19,7 @@ jobs:
           -H "Authorization: Bearer ${{ secrets.HF_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-                "inputs": "can you write 350 words email on productivity and don'\''t give me tips write by yourself using your creativity",
+                "inputs": "can you write 350 words email on youtube content creation and don't give me tips write by yourself using your creativity",
                 "parameters": {
                   "max_new_tokens": 5000,
                   "do_sample": true,
