@@ -32,7 +32,7 @@ jobs:
           payload = {
               "inputs": prompt,
               "parameters": {
-                  "max_new_tokens": 5000,
+                  "max_new_tokens": 9000,
                   "do_sample": True,
                   "temperature": 0.7,
                   "top_k": 50,
