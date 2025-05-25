@@ -1,0 +1,50 @@
+name: Run Mixtral Inference with Python
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  query_mixtral:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Python script to call Mixtral API
+        env:
+          HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
+        run: |
+          python3 - <<EOF
+          import requests
+          import json
+          import os
+          prompt = "can you write 350 words email on productivity and don't give me tips write by yourself using your creativity"
+          url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+          headers = {
+              "Authorization": f"Bearer {os.environ['HF_API_TOKEN']}",
+              "Content-Type": "application/json"
+          }
+          payload = {
+              "inputs": prompt,
+              "parameters": {
+                  "max_new_tokens": 9000,
+                  "do_sample": True,
+                  "temperature": 0.7,
+                  "top_k": 50,
+                  "top_p": 0.95
+              }
+          }
+          response = requests.post(url, headers=headers, data=json.dumps(payload))
+          raw_text = response.json()[0]['generated_text']
+          # Step 1: Remove prompt from the generated text
+          if raw_text.startswith(prompt):
+              raw_text = raw_text[len(prompt):]
+          # Step 2: Replace \n and \r\n with actual line breaks
+          cleaned_text = raw_text.replace("\\n", "\n").replace("\n\n", "\n").strip()
+          # Step 3: Output as plain text
+          print("----- Final Cleaned Output -----")
+          print(cleaned_text)
+          EOF
